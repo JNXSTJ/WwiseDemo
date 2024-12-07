@@ -20,6 +20,8 @@ endif(WIN32)
 
 set(SOURCE_FILES
     main.cpp
+    audio.cpp
+    audio.h
     Platform.h
     Platform.cpp
     SoundEngine/Common/AkFileLocationBase.cpp
@@ -43,6 +45,7 @@ set(SOURCE_FILES
 source_group("Source Files" FILES 
     main.cpp
     Platform.cpp
+    audio.cpp
     )
 source_group("SoundEngine/Common" FILES
             SoundEngine/Common/AkFileLocationBase.cpp
@@ -66,7 +69,7 @@ source_group("SoundEngine/Win32" FILES
             stdafx.cpp 
             stdafx.h
 )
-source_group("Header Files" Platform.h)
+source_group("Header Files" Platform.h Audio.h)
 
 # 定义项目
 add_executable(WwiseDemo ${SOURCE_FILES})
