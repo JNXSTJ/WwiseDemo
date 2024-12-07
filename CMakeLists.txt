@@ -79,6 +79,7 @@ target_include_directories(WwiseDemo PRIVATE
 # 指定库文件目录
 link_directories("C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\x64_vc170\\Debug\\lib")
 target_link_libraries(WwiseDemo PRIVATE 
+    "ws2_32"
     "Ak3DAudioBedMixerFX"
     "AkAudioInputSource"
     "AkAutobahn"
@@ -126,3 +127,9 @@ target_link_libraries(WwiseDemo PRIVATE
     "McDSPFutzBoxFX"
     "McDSPLimiterFX"
 )
+
+# tracy
+option(TRACY_ENABLE "" ON)
+option(TRACY_ON_DEMAND "" ON)
+add_subdirectory(third_party/tracy)
+target_link_libraries(WwiseDemo PUBLIC Tracy::TracyClient)

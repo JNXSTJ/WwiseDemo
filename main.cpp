@@ -1,4 +1,5 @@
 #include <iostream>
+#include <tracy/Tracy.hpp>
 #include <AK/SoundEngine/Common/AkTypes.h>
 
 #include <AK/SoundEngine/Common/AkMemoryMgr.h>		// Memory Manager
@@ -330,6 +331,7 @@ void Audio::LocalErrorCallback(AK::Monitor::ErrorCode in_eErrorCode, const AkOSC
 
 int main()
 {
+	ZoneScoped;
 	auto instance = Audio::Instance().Instance();
 	instance.LoadBnk("Init.bnk");
 	bool flag = false;
