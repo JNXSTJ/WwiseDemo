@@ -73,16 +73,7 @@ source_group("Header Files" Platform.h Audio.h)
 
 # 定义项目
 add_executable(WwiseDemo ${SOURCE_FILES})
-target_include_directories(WwiseDemo PRIVATE 
-    "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\include"
-    "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\samples\\SoundEngine\\Win32"
-    "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\samples\\SoundEngine\\Common"
-)
 
-# 指定库文件目录
-target_link_directories(WwiseDemo PRIVATE 
-    "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\x64_vc170\\Debug\\lib"
-    "C:\\Users\\taojian\\Desktop\\taojian_workspace\\assimp\\build\\lib\\Debug")
 
 target_link_libraries(WwiseDemo PRIVATE 
     "ws2_32"
@@ -132,14 +123,32 @@ target_link_libraries(WwiseDemo PRIVATE
     "MasteringSuiteFX"
     "McDSPFutzBoxFX"
     "McDSPLimiterFX"
-    "assimp-vc143-mtd"
 )
+
+# ASSIMP
+find_package(ASSIMP REQUIRED)
+if (ASSIMP_FOUND)
+    # target_include_directories(${XXX_INCLUDE_DIRS})
+    # target_link_libraries(your_target_name ${XXX_LIBRARIES})
+else()
+    message(FATAL_ERROR "Could not find XXX library")
+endif()
 
 # tracy
 option(TRACY_ENABLE "" ON)
 option(TRACY_ON_DEMAND "" ON)
 add_subdirectory(third_party/tracy)
-target_link_libraries(WwiseDemo PUBLIC Tracy::TracyClient)
+target_link_libraries(WwiseDemo PUBLIC Tracy::TracyClient 
+    ${ASSIMP_LIBRARIES})
 
-# assimp
-target_include_directories(WwiseDemo PRIVATE "C:\\Users\\taojian\\Desktop\\taojian_workspace\\assimp\\include")
+# 指定库文件目录
+target_link_directories(WwiseDemo PRIVATE 
+    "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\x64_vc170\\Debug\\lib"
+    )
+
+target_include_directories(WwiseDemo PRIVATE 
+    "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\include"
+    "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\samples\\SoundEngine\\Win32"
+    "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\samples\\SoundEngine\\Common"
+    ${ASSIMP_INCLUDE_DIRS}
+)
