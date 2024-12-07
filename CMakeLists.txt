@@ -80,7 +80,10 @@ target_include_directories(WwiseDemo PRIVATE
 )
 
 # 指定库文件目录
-link_directories("C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\x64_vc170\\Debug\\lib")
+target_link_directories(WwiseDemo PRIVATE 
+    "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\x64_vc170\\Debug\\lib"
+    "C:\\Users\\taojian\\Desktop\\taojian_workspace\\assimp\\build\\lib\\Debug")
+
 target_link_libraries(WwiseDemo PRIVATE 
     "ws2_32"
     "Ak3DAudioBedMixerFX"
@@ -129,6 +132,7 @@ target_link_libraries(WwiseDemo PRIVATE
     "MasteringSuiteFX"
     "McDSPFutzBoxFX"
     "McDSPLimiterFX"
+    "assimp-vc143-mtd"
 )
 
 # tracy
@@ -136,3 +140,6 @@ option(TRACY_ENABLE "" ON)
 option(TRACY_ON_DEMAND "" ON)
 add_subdirectory(third_party/tracy)
 target_link_libraries(WwiseDemo PUBLIC Tracy::TracyClient)
+
+# assimp
+target_include_directories(WwiseDemo PRIVATE "C:\\Users\\taojian\\Desktop\\taojian_workspace\\assimp\\include")
