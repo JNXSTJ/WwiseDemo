@@ -201,7 +201,7 @@ public:
 	static AKRESULT CheckDirectoryExists( const AkOSChar* in_pszBasePath )
 	{
 		DWORD fileAttributes = INVALID_FILE_ATTRIBUTES;
-		fileAttributes = GetFileAttributes( LPCSTR (in_pszBasePath ));
+		fileAttributes = GetFileAttributes( in_pszBasePath );
 		if (fileAttributes == INVALID_FILE_ATTRIBUTES)
 			return AK_PathNotFound;  //something is wrong with your path!
 
@@ -241,7 +241,7 @@ public:
 
 	static AKRESULT CreateEmptyDirectory(const AkOSChar* in_pszDirectoryPath)
 	{
-		bool bSuccess = ::CreateDirectory(LPCSTR (in_pszDirectoryPath), NULL) == TRUE;
+		bool bSuccess = ::CreateDirectory(in_pszDirectoryPath, NULL) == TRUE;
 		if (!bSuccess && ::GetLastError() != ERROR_ALREADY_EXISTS)
 			return AK_Fail;
 
@@ -250,7 +250,7 @@ public:
 
 	static AKRESULT RemoveEmptyDirectory(const AkOSChar* in_pszDirectoryPath)
 	{
-		bool bSuccess = ::RemoveDirectory(LPCSTR (in_pszDirectoryPath)) == TRUE;
+		bool bSuccess = ::RemoveDirectory(in_pszDirectoryPath) == TRUE;
 		if (!bSuccess)
 			return AK_Fail;
 

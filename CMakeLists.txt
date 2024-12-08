@@ -24,6 +24,34 @@ set(SOURCE_FILES
     audio.h
     Platform.h
     Platform.cpp
+    FrameResource.h 
+    FrameResource.cpp 
+    LoadM3d.h 
+    LoadM3d.cpp 
+    ShadowMap.h 
+    ShadowMap.cpp 
+    SkinnedData.h 
+    SkinnedData.cpp
+    Ssao.h 
+    Ssao.cpp
+    Common/Camera.h
+    Common/Camera.cpp
+    Common/d3dApp.h
+    Common/d3dApp.cpp
+    Common/d3dUtil.h
+    Common/d3dUtil.cpp
+    Common/d3dx12.h
+    Common/DDSTextureLoader.h
+    Common/DDSTextureLoader.h
+    Common/GameTimer.h
+    Common/GameTimer.cpp
+    Common/GeometryGenerator.h
+    Common/GeometryGenerator.cpp
+    Common/MathHelper.h
+    Common/MathHelper.cpp
+    Common/UploadBuffer.h
+
+
     SoundEngine/Common/AkFileLocationBase.cpp
     SoundEngine/Common/AkFileLocationBase.h
     SoundEngine/Common/AkFilePackage.cpp
@@ -46,6 +74,10 @@ source_group("Source Files" FILES
     main.cpp
     Platform.cpp
     audio.cpp
+    FrameResource.cpp
+    LoadM3d.cpp 
+    ShadowMap.cpp 
+    SkinnedData.cpp
     )
 source_group("SoundEngine/Common" FILES
             SoundEngine/Common/AkFileLocationBase.cpp
@@ -69,7 +101,33 @@ source_group("SoundEngine/Win32" FILES
             stdafx.cpp 
             stdafx.h
 )
-source_group("Header Files" Platform.h Audio.h)
+source_group("Common" FILES 
+            Common/Camera.h
+            Common/Camera.cpp
+            Common/d3dApp.h
+            Common/d3dApp.cpp
+            Common/d3dUtil.h
+            Common/d3dUtil.cpp
+            Common/d3dx12.h
+            Common/DDSTextureLoader.h
+            Common/DDSTextureLoader.h
+            Common/GameTimer.h
+            Common/GameTimer.cpp
+            Common/GeometryGenerator.h
+            Common/GeometryGenerator.cpp
+            Common/MathHelper.h
+            Common/MathHelper.cpp
+            Common/UploadBuffer.h
+)
+source_group("Header Files" 
+            Platform.h 
+            Audio.h
+            FrameResource.h 
+            LoadM3d.h 
+            ShadowMap.h 
+            SkinnedData.h
+            Ssao.h
+            )
 
 # 定义项目
 add_executable(WwiseDemo ${SOURCE_FILES})
@@ -152,3 +210,8 @@ target_include_directories(WwiseDemo PRIVATE
     "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\samples\\SoundEngine\\Common"
     ${ASSIMP_INCLUDE_DIRS}
 )
+
+
+if(WIN32)
+    add_definitions(-DUNICODE -D_UNICODE)
+endif()
