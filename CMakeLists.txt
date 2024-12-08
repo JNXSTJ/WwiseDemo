@@ -42,7 +42,7 @@ set(SOURCE_FILES
     Common/d3dUtil.cpp
     Common/d3dx12.h
     Common/DDSTextureLoader.h
-    Common/DDSTextureLoader.h
+    Common/DDSTextureLoader.cpp
     Common/GameTimer.h
     Common/GameTimer.cpp
     Common/GeometryGenerator.h
@@ -110,7 +110,7 @@ source_group("Common" FILES
             Common/d3dUtil.cpp
             Common/d3dx12.h
             Common/DDSTextureLoader.h
-            Common/DDSTextureLoader.h
+            Common/DDSTextureLoader.cpp
             Common/GameTimer.h
             Common/GameTimer.cpp
             Common/GeometryGenerator.h
@@ -130,7 +130,7 @@ source_group("Header Files"
             )
 
 # 定义项目
-add_executable(WwiseDemo ${SOURCE_FILES})
+add_executable(WwiseDemo WIN32 ${SOURCE_FILES})
 
 
 target_link_libraries(WwiseDemo PRIVATE 
