@@ -2,11 +2,11 @@
 // SkinnedMeshApp.cpp by Frank Luna (C) 2015 All Rights Reserved.
 //***************************************************************************************
 
-#include "../../Common/d3dApp.h"
-#include "../../Common/MathHelper.h"
-#include "../../Common/UploadBuffer.h"
-#include "../../Common/GeometryGenerator.h"
-#include "../../Common/Camera.h"
+#include "Common/d3dApp.h"
+#include "Common/MathHelper.h"
+#include "Common/UploadBuffer.h"
+#include "Common/GeometryGenerator.h"
+#include "Common/Camera.h"
 #include "FrameResource.h"
 #include "ShadowMap.h"
 #include "Ssao.h"
@@ -218,29 +218,6 @@ private:
 
     POINT mLastMousePos;
 };
-
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
-    PSTR cmdLine, int showCmd)
-{
-    // Enable run-time memory check for debug builds.
-#if defined(DEBUG) | defined(_DEBUG)
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-#endif
-
-    try
-    {
-        SkinnedMeshApp theApp(hInstance);
-        if(!theApp.Initialize())
-            return 0;
-
-        return theApp.Run();
-    }
-    catch(DxException& e)
-    {
-        MessageBox(nullptr, e.ToString().c_str(), L"HR Failed", MB_OK);
-        return 0;
-    }
-}
 
 SkinnedMeshApp::SkinnedMeshApp(HINSTANCE hInstance)
     : D3DApp(hInstance)
@@ -799,13 +776,13 @@ void SkinnedMeshApp::LoadTextures()
 	
 	std::vector<std::wstring> texFilenames = 
 	{
-		L"../../Textures/bricks2.dds",
-		L"../../Textures/bricks2_nmap.dds",
-		L"../../Textures/tile.dds",
-		L"../../Textures/tile_nmap.dds",
-		L"../../Textures/white1x1.dds",
-		L"../../Textures/default_nmap.dds",
-		L"../../Textures/desertcube1024.dds"
+		L"Textures/bricks2.dds",
+		L"Textures/bricks2_nmap.dds",
+		L"Textures/tile.dds",
+		L"Textures/tile_nmap.dds",
+		L"Textures/white1x1.dds",
+		L"Textures/default_nmap.dds",
+		L"Textures/desertcube1024.dds"
 	};
 
     // Add skinned model textures to list so we can reference by name later.
@@ -814,8 +791,8 @@ void SkinnedMeshApp::LoadTextures()
         std::string diffuseName = mSkinnedMats[i].DiffuseMapName;
         std::string normalName = mSkinnedMats[i].NormalMapName;
 
-        std::wstring diffuseFilename = L"../../Textures/" + AnsiToWString(diffuseName);
-        std::wstring normalFilename = L"../../Textures/" + AnsiToWString(normalName);
+        std::wstring diffuseFilename = L"Textures/" + AnsiToWString(diffuseName);
+        std::wstring normalFilename = L"Textures/" + AnsiToWString(normalName);
 
         // strip off extension
         diffuseName = diffuseName.substr(0, diffuseName.find_last_of("."));

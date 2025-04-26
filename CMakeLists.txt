@@ -32,6 +32,7 @@ set(SOURCE_FILES
     ShadowMap.cpp 
     SkinnedData.h 
     SkinnedData.cpp
+    SkinnedMeshApp.cpp
     Ssao.h 
     Ssao.cpp
     Common/Camera.h
@@ -78,6 +79,7 @@ source_group("Source Files" FILES
     LoadM3d.cpp 
     ShadowMap.cpp 
     SkinnedData.cpp
+    SkinnedMeshApp.cpp
     )
 source_group("SoundEngine/Common" FILES
             SoundEngine/Common/AkFileLocationBase.cpp
