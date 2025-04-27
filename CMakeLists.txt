@@ -32,6 +32,7 @@ set(SOURCE_FILES
     ShadowMap.cpp 
     SkinnedData.h 
     SkinnedData.cpp
+    SkinnedMeshApp.h
     SkinnedMeshApp.cpp
     Ssao.h 
     Ssao.cpp
