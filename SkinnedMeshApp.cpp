@@ -2,6 +2,7 @@
 // SkinnedMeshApp.cpp by Frank Luna (C) 2015 All Rights Reserved.
 //***************************************************************************************
 
+#include <tracy/Tracy.hpp>
 #include "Common/d3dApp.h"
 #include "Common/MathHelper.h"
 #include "Common/UploadBuffer.h"
@@ -118,6 +119,8 @@ void SkinnedMeshApp::OnResize()
 
 void SkinnedMeshApp::Update(const GameTimer& gt)
 {
+    FrameMarkStart("test");
+    ZoneScoped;
     OnKeyboardInput(gt);
 
     // Cycle through the circular frame resource array.
@@ -156,6 +159,7 @@ void SkinnedMeshApp::Update(const GameTimer& gt)
 	UpdateMainPassCB(gt);
     UpdateShadowPassCB(gt);
     UpdateSsaoCB(gt);
+    FrameMarkEnd("test");
 }
 
 void SkinnedMeshApp::Draw(const GameTimer& gt)
@@ -343,6 +347,8 @@ void SkinnedMeshApp::AnimateMaterials(const GameTimer& gt)
 
 void SkinnedMeshApp::UpdateObjectCBs(const GameTimer& gt)
 {
+    static constexpr tracy::SourceLocationData __tracy_source_location350{ nullptr, __FUNCTION__, "C:\\Users\\tao\\Desktop\\WwiseDemo\\SkinnedMeshApp.cpp", (uint32_t)350, 0 }; 
+    tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location350, true);
 	auto currObjectCB = mCurrFrameResource->ObjectCB.get();
 	for(auto& e : mAllRitems)
 	{
@@ -1540,6 +1546,7 @@ void SkinnedMeshApp::BuildRenderItems()
 
 void SkinnedMeshApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems)
 {
+	ZoneScoped;
     UINT objCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
     UINT skinnedCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(SkinnedConstants));
 
@@ -1640,6 +1647,7 @@ void SkinnedMeshApp::DrawNormalsAndDepth()
     mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(normalMap,
         D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
 }
+
 CD3DX12_CPU_DESCRIPTOR_HANDLE SkinnedMeshApp::GetCpuSrv(int index)const
 {
     auto srv = CD3DX12_CPU_DESCRIPTOR_HANDLE(mSrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());

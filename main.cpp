@@ -257,10 +257,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 	//myengine::assimp::Model ElysiaBody("C:/Users/taojian/Desktop/wwise_demo/asset/rain_restaurant.obj");
-    PrintWorkdir();
+    //PrintWorkdir();
 
 
-	//ZoneScoped;
 	//myengine::audio::Audio& instance = myengine::audio::Audio::Instance();
     //instance.LoadBnk("Init.bnk");
 	//bool flag = false;
