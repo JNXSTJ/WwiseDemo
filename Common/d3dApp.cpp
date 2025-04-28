@@ -3,6 +3,7 @@
 //***************************************************************************************
 
 #include "d3dApp.h"
+#include "../audio.h"
 #include <WindowsX.h>
 
 using Microsoft::WRL::ComPtr;
@@ -98,6 +99,7 @@ int D3DApp::Run()
 			{
 				Sleep(100);
 			}
+			myengine::audio::Audio::Instance().RenderAudio();
         }
     }
 

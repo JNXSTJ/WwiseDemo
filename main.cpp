@@ -260,8 +260,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
     //PrintWorkdir();
 
 
-	//myengine::audio::Audio& instance = myengine::audio::Audio::Instance();
-    //instance.LoadBnk("Init.bnk");
+	myengine::audio::Audio& instance = myengine::audio::Audio::Instance();
+    instance.LoadBnk("Init.bnk");
+	instance.LoadBnk("Reflect.bnk");
 	//bool flag = false;
 	//while (true)
 	//{
@@ -269,7 +270,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 	//	if (flag == false)
 	//	{
 	//		flag = true;
-	//		instance.LoadBnk("Reflect.bnk");
 	//		auto id = instance.RegisterGameObject("taojian");
 	//		instance.PostEvent(id, "Play_Reflect_Emitter");
 	//		AK::SoundEngine::RenderAudio();

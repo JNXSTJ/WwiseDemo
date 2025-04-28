@@ -2,6 +2,8 @@
 // SkinnedMeshApp.cpp by Frank Luna (C) 2015 All Rights Reserved.
 //***************************************************************************************
 
+#include "audio.h"
+#include "gameobject.h"
 #include "Common/d3dApp.h"
 #include "Common/MathHelper.h"
 #include "Common/UploadBuffer.h"
@@ -18,12 +20,27 @@ using namespace DirectX;
 using namespace DirectX::PackedVector;
 
 
-struct SkinnedModelInstance
+class SkinnedModelInstance
 {
+public:
+    SkinnedModelInstance(SkinnedData* SkinnedInfo, std::string clipName, std::string game_object_name):
+        SkinnedInfo(SkinnedInfo), m_finalTransforms(SkinnedInfo->BoneCount()), ClipName(clipName), TimePos(0.0f)
+    {
+        gameobject = myengine::audio::Audio::Instance().RegisterAudioObject(game_object_name);
+    }
+
+    std::vector<DirectX::XMFLOAT4X4>& FinalTransforms()
+    {
+        return m_finalTransforms;
+
+    }
+private:
     SkinnedData* SkinnedInfo = nullptr;
-    std::vector<DirectX::XMFLOAT4X4> FinalTransforms;
+    std::vector<DirectX::XMFLOAT4X4> m_finalTransforms;
     std::string ClipName;
     float TimePos = 0.0f;
+    myengine::audio::AudioGameObject* gameobject = nullptr;
+public:
 
     // Called every frame and increments the time position, interpolates the 
     // animations for each bone based on the current animation clip, and 
@@ -34,11 +51,14 @@ struct SkinnedModelInstance
         TimePos += dt;
 
         // Loop animation
-        if(TimePos > SkinnedInfo->GetClipEndTime(ClipName))
+        if (TimePos > SkinnedInfo->GetClipEndTime(ClipName))
+        {
             TimePos = 0.0f;
+            gameobject->PostEvent("Play_Reflect_Emitter");
+        }
 
         // Compute the final transforms for this time position.
-        SkinnedInfo->GetFinalTransforms(ClipName, TimePos, FinalTransforms);
+        SkinnedInfo->GetFinalTransforms(ClipName, TimePos, FinalTransforms());
     }
 };
 

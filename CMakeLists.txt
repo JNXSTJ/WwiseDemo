@@ -22,6 +22,8 @@ set(SOURCE_FILES
     main.cpp
     audio.cpp
     audio.h
+    gameobject.h
+    gameobject.cpp
     Platform.h
     Platform.cpp
     FrameResource.h 
@@ -76,6 +78,7 @@ source_group("Source Files" FILES
     main.cpp
     Platform.cpp
     audio.cpp
+    gameobject.cpp
     FrameResource.cpp
     LoadM3d.cpp 
     ShadowMap.cpp 
@@ -130,6 +133,7 @@ source_group("Header Files"
             ShadowMap.h 
             SkinnedData.h
             Ssao.h
+            gameobject.h
             )
 
 # 定义项目

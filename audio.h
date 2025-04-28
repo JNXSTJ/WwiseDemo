@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <tracy/Tracy.hpp>
 #include <AK/SoundEngine/Common/AkTypes.h>
@@ -49,6 +50,7 @@ namespace myengine
 {
 	namespace audio
 	{
+		class AudioGameObject;
 		class Audio
 		{
 		private:
@@ -65,6 +67,13 @@ namespace myengine
 			void PostEvent(AkGameObjectID gameObj, const std::string& eventPath);
 
 			AkGameObjectID RegisterGameObject(std::string name);
+
+			AudioGameObject* RegisterAudioObject(std::string name);
+
+			void RenderAudio()
+			{
+				AK::SoundEngine::RenderAudio();
+			}
 		private:
 			Audio();
 

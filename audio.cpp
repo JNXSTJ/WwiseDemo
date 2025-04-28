@@ -1,6 +1,8 @@
 #include <iostream>
 #include <tracy/Tracy.hpp>
 #include "audio.h"
+#include "gameobject.h"
+
 namespace myengine
 {
 	namespace audio
@@ -20,6 +22,14 @@ namespace myengine
 		{
 			AK::SoundEngine::RegisterGameObj(++start_id, name.c_str());
 			return start_id;
+		}
+
+		AudioGameObject* Audio::RegisterAudioObject(std::string name)
+		{
+			AKRESULT res = AK::SoundEngine::RegisterGameObj(start_id, name.c_str());
+			auto ret = new AudioGameObject(start_id);
+			++start_id;
+			return ret;
 		}
 
 		Audio::Audio()

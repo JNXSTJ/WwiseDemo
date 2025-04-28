@@ -381,8 +381,8 @@ void SkinnedMeshApp::UpdateSkinnedCBs(const GameTimer& gt)
         
     SkinnedConstants skinnedConstants;
     std::copy(
-        std::begin(mSkinnedModelInst->FinalTransforms),
-        std::end(mSkinnedModelInst->FinalTransforms),
+        std::begin(mSkinnedModelInst->FinalTransforms()),
+        std::end(mSkinnedModelInst->FinalTransforms()),
         &skinnedConstants.BoneTransforms[0]);
 
     currSkinnedCB->CopyData(0, skinnedConstants);
@@ -1067,11 +1067,7 @@ void SkinnedMeshApp::LoadSkinnedModel()
 	m3dLoader.LoadM3d(mSkinnedModelFilename, vertices, indices, 
         mSkinnedSubsets, mSkinnedMats, mSkinnedInfo);
 
-    mSkinnedModelInst = std::make_unique<SkinnedModelInstance>();
-    mSkinnedModelInst->SkinnedInfo = &mSkinnedInfo;
-    mSkinnedModelInst->FinalTransforms.resize(mSkinnedInfo.BoneCount());
-    mSkinnedModelInst->ClipName = "Take1";
-    mSkinnedModelInst->TimePos = 0.0f;
+    mSkinnedModelInst = std::make_unique<SkinnedModelInstance>(&mSkinnedInfo, "Take1", "hero");
  
 	const UINT vbByteSize = (UINT)vertices.size() * sizeof(SkinnedVertex);
     const UINT ibByteSize = (UINT)indices.size()  * sizeof(std::uint16_t);
