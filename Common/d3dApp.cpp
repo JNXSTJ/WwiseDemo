@@ -415,9 +415,28 @@ bool D3DApp::InitDirect3D()
 
 	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&mdxgiFactory)));
 
+	IDXGIFactory1* pFactory;
+	CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)(&pFactory));
+
+	IDXGIAdapter1* pAdapter;
+	IDXGIAdapter1* targetAdapter = nullptr;
+	for (UINT i = 0; pFactory->EnumAdapters1(i, &pAdapter) != DXGI_ERROR_NOT_FOUND; ++i) {
+		DXGI_ADAPTER_DESC1 desc;
+		pAdapter->GetDesc1(&desc);
+		// 分析 desc 判断是否为独立显卡
+		if ((desc.DedicatedVideoMemory > 1024 * 1024 * 1024) &&
+			!(desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)) {
+			// 选中此适配器为独立显卡
+			targetAdapter = pAdapter;
+			std::cout << "" << std::endl;
+		}
+	}
+
+
+
 	// Try to create hardware device.
 	HRESULT hardwareResult = D3D12CreateDevice(
-		nullptr,             // default adapter
+		targetAdapter,             // default adapter
 		D3D_FEATURE_LEVEL_11_0,
 		IID_PPV_ARGS(&md3dDevice));
 

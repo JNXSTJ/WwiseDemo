@@ -263,18 +263,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 	myengine::audio::Audio& instance = myengine::audio::Audio::Instance();
     instance.LoadBnk("Init.bnk");
 	instance.LoadBnk("Reflect.bnk");
-	//bool flag = false;
-	//while (true)
-	//{
-	//	::Sleep(1000);
-	//	if (flag == false)
-	//	{
-	//		flag = true;
-	//		auto id = instance.RegisterGameObject("taojian");
-	//		instance.PostEvent(id, "Play_Reflect_Emitter");
-	//		AK::SoundEngine::RenderAudio();
-	//	}
-	//}
 
 	auto inFile = "C:\\Users\\taojian\\Desktop\\wwise_demo\\asset\\rain_restaurant.obj";
 
