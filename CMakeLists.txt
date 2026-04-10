@@ -26,14 +26,8 @@ set(SOURCE_FILES
     gameobject.cpp
     Platform.h
     Platform.cpp
-    FrameResource.h 
-    FrameResource.cpp 
-    LoadM3d.h 
-    LoadM3d.cpp 
     ShadowMap.h 
     ShadowMap.cpp 
-    SkinnedData.h 
-    SkinnedData.cpp
     SkinnedMeshApp.h
     SkinnedMeshApp.cpp
     Ssao.h 
@@ -54,7 +48,12 @@ set(SOURCE_FILES
     Common/MathHelper.h
     Common/MathHelper.cpp
     Common/UploadBuffer.h
-
+    Common/FrameResource.h 
+    Common/FrameResource.cpp 
+    Common/LoadM3d.h 
+    Common/LoadM3d.cpp 
+    Common/SkinnedData.h 
+    Common/SkinnedData.cpp
 
     SoundEngine/Common/AkFileLocationBase.cpp
     SoundEngine/Common/AkFileLocationBase.h
@@ -79,10 +78,7 @@ source_group("Source Files" FILES
     Platform.cpp
     audio.cpp
     gameobject.cpp
-    FrameResource.cpp
-    LoadM3d.cpp 
     ShadowMap.cpp 
-    SkinnedData.cpp
     SkinnedMeshApp.cpp
     )
 source_group("SoundEngine/Common" FILES
@@ -124,11 +120,16 @@ source_group("Common" FILES
             Common/MathHelper.h
             Common/MathHelper.cpp
             Common/UploadBuffer.h
+            Common/FrameResource.h 
+            Common/FrameResource.cpp
+            Common/LoadM3d.h
+            Common/LoadM3d.cpp 
+            Common/SkinnedData.h
+            Common/SkinnedData.cpp
 )
 source_group("Header Files" 
             Platform.h 
             Audio.h
-            FrameResource.h 
             LoadM3d.h 
             ShadowMap.h 
             SkinnedData.h
@@ -209,12 +210,15 @@ target_link_libraries(WwiseDemo PUBLIC Tracy::TracyClient
 # 指定库文件目录
 target_link_directories(WwiseDemo PRIVATE 
     "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\x64_vc170\\Debug\\lib"
+    "C:\\Users\\tao\\vcpkg\\installed\\x64-windows\\lib"
     )
 
 target_include_directories(WwiseDemo PRIVATE 
     "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\include"
     "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\samples\\SoundEngine\\Win32"
     "C:\\Program Files (x86)\\Audiokinetic\\Wwise2024.1.0.8669\\SDK\\samples\\SoundEngine\\Common"
+    "C:\\Users\\tao\\vcpkg\\installed\\x64-windows\\include"
+    "C:\\Users\\tao\\vcpkg\\installed\\x64-windows\\include\\python3.12"
     ${ASSIMP_INCLUDE_DIRS}
 )
 

@@ -80,6 +80,7 @@ namespace myengine
 			unsigned int in_unErrorBufferCharCount	///< - Number of characters available in in_szErrorBuffer, including terminating NULL character
 		)
 		{
+			return false;
 			//AK::IntegrationDemo::PlatformHooks::Get()->PreInit(this);
 
 			//

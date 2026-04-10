@@ -1,3 +1,4 @@
+#include <fstream>
 #include "LoadM3d.h"
  
 using namespace DirectX;

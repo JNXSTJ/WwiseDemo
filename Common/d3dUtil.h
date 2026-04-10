@@ -25,6 +25,7 @@
 #include <fstream>
 #include <sstream>
 #include <cassert>
+#include "LoadM3d.h"
 #include "d3dx12.h"
 #include "DDSTextureLoader.h"
 #include "MathHelper.h"
@@ -187,6 +188,8 @@ struct MeshGeometry
 	UINT ColorVertexBufferByteSize = 0;
 	DXGI_FORMAT IndexFormat = DXGI_FORMAT_R16_UINT;
 	UINT IndexBufferByteSize = 0;
+	std::vector<M3DLoader::SkinnedVertex> vertices;
+	std::vector<std::uint16_t> indices;	
 
 	// A MeshGeometry may store multiple geometries in one vertex/index buffer.
 	// Use this container to define the Submesh geometries so we can draw

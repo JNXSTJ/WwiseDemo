@@ -8,11 +8,11 @@
 #include "Common/UploadBuffer.h"
 #include "Common/GeometryGenerator.h"
 #include "Common/Camera.h"
-#include "FrameResource.h"
+#include "Common/FrameResource.h"
 #include "ShadowMap.h"
 #include "Ssao.h"
-#include "SkinnedData.h"
-#include "LoadM3d.h"
+#include "Common/SkinnedData.h"
+#include "Common/LoadM3d.h"
 #include "SkinnedMeshApp.h"
 #include <tracy/Tracy.hpp>
 #include <vector>
@@ -22,209 +22,132 @@
 #include <assimp/postprocess.h>
 #include <assimp/Exporter.hpp>
 #include <DirectXMath.h>
+#include <iostream>
+#include <vector>
+#include <pybind11/embed.h>
+#include <shared_mutex>
+#include <time.h>
 #include "audio.h"
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX::PackedVector;
 using namespace DirectX;
 
-namespace myengine
-{
-    namespace assimp
-    {
-struct Vertex
-{
-	Vertex() = default;
-	Vertex(const Vertex& rhs)
-	{
-		this->position = rhs.position;
-		this->normal = rhs.normal;
-		this->tangent = rhs.tangent;
-		this->texCoord = rhs.texCoord;
-	}
-	Vertex& operator= (Vertex& rhs)
-	{
-		return rhs;
-	}
 
-	Vertex(Vertex&& rhs) = default;
+namespace py = pybind11;
 
-	XMFLOAT3 position;
-	XMFLOAT3 normal;
-	XMFLOAT3 tangent;
-	XMFLOAT2 texCoord;
+// 游戏对象基类
+class GameObject {
+public:
+    virtual void update(float dt) = 0;
+    virtual void on_key_event(int key) = 0;
+    virtual ~GameObject() = default;
+
+    float x = 0;
+    float y = 0;
 };
 
-class Model
-{
+// 修改后（正确）
+PYBIND11_EMBEDDED_MODULE(gameengine, m) {
+    py::class_<GameObject>(m, "GameObject")
+        .def_readwrite("x", &GameObject::x)  // 使用def_readwrite暴露公共成员变量
+        .def_readwrite("y", &GameObject::y);
+}
+
+// Python脚本管理的游戏对象
+class ScriptedObject : public GameObject {
 public:
+    ScriptedObject(py::object instance)
+        : instance(instance) {
+    }
 
-	struct Mesh
-	{
-		Mesh() = default;
-		std::vector<Vertex> vertices;
-		std::vector<uint32_t> indices;
+    void update(float dt) override {
+        try {
+            instance.attr("update")(dt);
+        }
+        catch (py::error_already_set& e) {
+            std::cerr << "Python error in update: " << e.what() << "\n";
+        }
+    }
 
-		Mesh(std::vector<Vertex>& vertices, std::vector<UINT>& indices)
-		{
-			this->vertices = vertices;
-			this->indices = indices;
-		}
-	};
-
-	// load scene for assimp
-	Model(const std::string& path);
-
-	// Traverse and process the nodes in assimp in turn
-	void TraverseNode(const aiScene* scene, aiNode* node);
-
-	// load mesh, which includes vertex, index, normal, tangent, texture, material information
-	Mesh LoadMesh(const aiScene* scene, aiMesh* mesh);
-
-	std::vector<Vertex> GetVertices();
-
-	std::vector<uint32_t> GetIndices();
+    void on_key_event(int key) override {
+        try {
+            instance.attr("on_key_event")(key);
+        }
+        catch (py::error_already_set& e) {
+            std::cerr << "Python error in on_key_event: " << e.what() << "\n";
+        }
+    }
 
 private:
-	std::string directory;
-	std::vector<Mesh> m_meshs;
+    py::object instance;
 };
 
+class GameEngine {
+public:
+    GameEngine() {
+        // 初始化Python解释器
+        py::initialize_interpreter();
 
-Model::Model(const std::string& path)
-{
-	Assimp::Importer localImporter;
-
-	const aiScene* pLocalScene = localImporter.ReadFile(
-		path,
-		// Triangulates all faces of all meshes
-		aiProcess_Triangulate |
-		// Supersedes the aiProcess_MakeLeftHanded and aiProcess_FlipUVs and aiProcess_FlipWindingOrder flags
-		aiProcess_ConvertToLeftHanded |
-		// This preset enables almost every optimization step to achieve perfectly optimized data. In D3D, need combine with aiProcess_ConvertToLeftHanded
-		aiProcessPreset_TargetRealtime_MaxQuality |
-		// Calculates the tangents and bitangents for the imported meshes
-		aiProcess_CalcTangentSpace |
-		// Splits large meshes into smaller sub-meshes
-		// This is quite useful for real-time rendering, 
-		// where the number of triangles which can be maximally processed in a single draw - call is limited by the video driver / hardware
-		aiProcess_SplitLargeMeshes |
-		// A postprocessing step to reduce the number of meshes
-		aiProcess_OptimizeMeshes |
-		// A postprocessing step to optimize the scene hierarchy
-		aiProcess_OptimizeGraph);
-
-	// "localScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE" is used to check whether value data returned is incomplete
-	if (pLocalScene == nullptr || pLocalScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || pLocalScene->mRootNode == nullptr)
-	{
-		std::cout << "ERROR::ASSIMP::" << localImporter.GetErrorString() << std::endl;
-	}
-
-	directory = path.substr(0, path.find_last_of('/'));
-
-	TraverseNode(pLocalScene, pLocalScene->mRootNode);
-}
-
-void Model::TraverseNode(const aiScene* scene, aiNode* node)
-{
-	// load mesh
-	for (UINT i = 0; i < node->mNumMeshes; ++i)
-	{
-		aiMesh* pLocalMesh = scene->mMeshes[node->mMeshes[i]];
-		m_meshs.push_back(LoadMesh(scene, pLocalMesh));
-	}
-
-	// traverse child node
-	for (UINT i = 0; i < node->mNumChildren; ++i)
-	{
-		TraverseNode(scene, node->mChildren[i]);
-	}
-}
-
-Model::Mesh Model::LoadMesh(const aiScene* scene, aiMesh* mesh)
-{
-	std::vector<Vertex> localVertices;
-	std::vector<uint32_t> localIndices;
-
-	// process vertex position, normal, tangent, texture coordinates
-	for (UINT i = 0; i < mesh->mNumVertices; ++i)
-	{
-		Vertex localVertex;
-
-		localVertex.position.x = mesh->mVertices[i].x;
-		localVertex.position.y = mesh->mVertices[i].y;
-		localVertex.position.z = mesh->mVertices[i].z;
-
-		localVertex.normal.x = mesh->mNormals[i].x;
-		localVertex.normal.y = mesh->mNormals[i].y;
-		localVertex.normal.z = mesh->mNormals[i].z;
-
-		if (mesh->mTangents != nullptr)
-		{
-			localVertex.tangent.x = mesh->mTangents[i].x;
-			localVertex.tangent.y = mesh->mTangents[i].y;
-			localVertex.tangent.z = mesh->mTangents[i].z;
-		}
-
-		// assimp allow one model have 8 different texture coordinates in one vertex, but we just care first texture coordinates because we will not use so many
-		if (mesh->mTextureCoords[0])
-		{
-			localVertex.texCoord.x = mesh->mTextureCoords[0][i].x;
-			localVertex.texCoord.y = mesh->mTextureCoords[0][i].y;
-		}
-		else
-		{
-			localVertex.texCoord = XMFLOAT2(0.0f, 0.0f);
-		}
-
-		localVertices.push_back(localVertex);
-	}
-
-	for (UINT i = 0; i < mesh->mNumFaces; ++i)
-	{
-		aiFace localFace = mesh->mFaces[i];
-		for (UINT j = 0; j < localFace.mNumIndices; ++j)
-		{
-			localIndices.push_back(localFace.mIndices[j]);
-		}
-	}
-
-	return Mesh(localVertices, localIndices);
-}
-
-std::vector<Vertex> Model::GetVertices()
-{
-	std::vector<Vertex> localVertices;
-
-	for (auto& m : m_meshs)
-	{
-		for (auto& v : m.vertices)
-		{
-			localVertices.push_back(v);
-		}
-	}
-
-	return localVertices;
-}
-
-std::vector<uint32_t> Model::GetIndices()
-{
-	std::vector<uint32_t> localIndices;
-
-	for (auto& m : m_meshs)
-	{
-		for (auto& i : m.indices)
-		{
-			localIndices.push_back(i);
-		}
-	}
-
-	return localIndices;
-}
-
+        // 添加当前目录到Python路径
+        py::module_ sys = py::module_::import("sys");
+        sys.attr("path").attr("insert")(0, ".");
     }
-}
 
+    ~GameEngine() {
+        py::finalize_interpreter();
+    }
+
+    void load_script(const std::string& path) {
+        try {
+            auto module = py::module_::import(path.c_str());
+            auto create_func = module.attr("create_object");
+
+            // 创建Python对象并包装为C++对象
+            auto py_obj = create_func();
+            objects.emplace_back(std::make_unique<ScriptedObject>(py_obj));
+        }
+        catch (py::error_already_set& e) {
+            std::cerr << "Failed to load script: " << e.what() << "\n";
+        }
+    }
+
+    void run() {
+        float dt = 0.016f; // 假设60帧
+        while (running) {
+            process_input();
+            update(dt);
+            render();
+            ::_Thrd_sleep_for(1000);
+        }
+    }
+
+private:
+    void process_input() {
+        // 模拟按键事件（这里假设检测到按键1）
+        int pressed_key = 1;
+        for (auto& obj : objects) {
+            obj->on_key_event(pressed_key);
+        }
+    }
+
+    void update(float dt) {
+        for (auto& obj : objects) {
+            obj->update(dt);
+        }
+    }
+
+    void render() {
+        std::cout << "Rendering...\n";
+        for (auto& obj : objects) {
+            std::cout << "Object at (" << obj->x << ", " << obj->y << ")\n";
+        }
+        std::cout << std::endl;
+    }
+
+    std::vector<std::unique_ptr<GameObject>> objects;
+    bool running = true;
+};
 
 void PrintWorkdir() {
     // 定义一个缓冲区来存储当前工作路径
@@ -264,7 +187,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
     instance.LoadBnk("Init.bnk");
 	instance.LoadBnk("Reflect.bnk");
 
-	auto inFile = "C:\\Users\\taojian\\Desktop\\wwise_demo\\asset\\rain_restaurant.obj";
+    std::ofstream out("output.txt");
+    auto old_buf = std::cout.rdbuf(out.rdbuf()); // 保存并重定向
+    std::cout << "test" << std::endl;
+
+    //GameEngine engine;
+
+    //engine.load_script("demo_script"); // 加载demo_script.py
+    //engine.run();
 
     try
     {

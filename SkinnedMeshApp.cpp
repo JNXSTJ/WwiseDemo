@@ -9,17 +9,17 @@
 #include "Common/GeometryGenerator.h"
 #include "Common/Camera.h"
 #include "SkinnedMeshApp.h"
-#include "FrameResource.h"
+#include "Common/FrameResource.h"
 #include "ShadowMap.h"
 #include "Ssao.h"
-#include "SkinnedData.h"
-#include "LoadM3d.h"
+#include "Common/SkinnedData.h"
+#include "Common/LoadM3d.h"
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 using namespace DirectX::PackedVector;
 
-const int gNumFrameResources = 3;
+const int gNumFrameResources = 1;
 
 SkinnedMeshApp::SkinnedMeshApp(HINSTANCE hInstance)
     : D3DApp(hInstance)
@@ -259,7 +259,10 @@ void SkinnedMeshApp::Draw(const GameTimer& gt)
     mCommandList->SetPipelineState(mPSOs["opaque"].Get());
     DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::Opaque]);
 
-    mCommandList->SetPipelineState(mPSOs["skinnedOpaque"].Get());
+    if (GPUSkin)
+		mCommandList->SetPipelineState(mPSOs["skinnedOpaque"].Get());
+    else
+		mCommandList->SetPipelineState(mPSOs["opaque"].Get());
     DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::SkinnedOpaque]);
 
     mCommandList->SetPipelineState(mPSOs["debug"].Get());
@@ -372,20 +375,98 @@ void SkinnedMeshApp::UpdateObjectCBs(const GameTimer& gt)
 	}
 }
 
+XMVECTOR VectorMatrixMultiplyFloat(const XMFLOAT4& vec, const XMFLOAT4X4& mat, float weight) {
+    // 加载数据到SIMD类型
+    XMVECTOR v = XMLoadFloat4(&vec);
+    XMMATRIX m = XMLoadFloat4x4(&mat);
+
+    // 向量左乘矩阵（行主序）
+    XMVECTOR result = XMVector4Transform(v, m);
+    // 执行标量乘法
+    XMVECTOR result2 = XMVectorScale(result, weight);
+    return result2;
+}
+
+XMFLOAT4 VectorMatrixMultiply(const XMFLOAT4& vec, const XMFLOAT4X4& mat) {
+    // 加载数据到SIMD类型
+    XMVECTOR v = XMLoadFloat4(&vec);
+    XMMATRIX m = XMLoadFloat4x4(&mat);
+
+    // 向量左乘矩阵（行主序）
+    XMVECTOR result = XMVector4Transform(v, m);
+
+    // 存储结果回XMFLOAT4
+    XMFLOAT4 output;
+    XMStoreFloat4(&output, result);
+    return output;
+}
+
+XMFLOAT4 ScalarMultiply(const XMFLOAT4& vec, float scalar) {
+    // 加载向量到XMVECTOR
+    XMVECTOR v = XMLoadFloat4(&vec);
+
+    // 执行标量乘法
+    XMVECTOR result = XMVectorScale(v, scalar);
+
+    // 存储结果
+    XMFLOAT4 output;
+    XMStoreFloat4(&output, result);
+    return output;
+}
+
 void SkinnedMeshApp::UpdateSkinnedCBs(const GameTimer& gt)
 {
-    auto currSkinnedCB = mCurrFrameResource->SkinnedCB.get();
-   
-    // We only have one skinned model being animated.
-    mSkinnedModelInst->UpdateSkinnedAnimation(gt.DeltaTime());
-        
-    SkinnedConstants skinnedConstants;
-    std::copy(
-        std::begin(mSkinnedModelInst->FinalTransforms()),
-        std::end(mSkinnedModelInst->FinalTransforms()),
-        &skinnedConstants.BoneTransforms[0]);
+	// We only have one skinned model being animated.
+	mSkinnedModelInst->UpdateSkinnedAnimation(gt.DeltaTime());
+    auto& boneTrans = mSkinnedModelInst->FinalTransforms();
+    if (GPUSkin)
+    {
+		auto currSkinnedCB = mCurrFrameResource->SkinnedCB.get();
+			
+		SkinnedConstants skinnedConstants;
+		std::copy(
+			std::begin(mSkinnedModelInst->FinalTransforms()),
+			std::end(mSkinnedModelInst->FinalTransforms()),
+			&skinnedConstants.BoneTransforms[0]);
 
-    currSkinnedCB->CopyData(0, skinnedConstants);
+		currSkinnedCB->CopyData(0, skinnedConstants);
+    }
+    else
+    {
+        // cpu skin
+        auto& geo = mGeometries[mSkinnedModelFilename];
+        auto vertices = geo->vertices;
+        for (int i = 0; i < geo->vertices.size(); i++)
+        {
+            auto& vertex = geo->vertices[i];
+			float weights[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+            weights[0] = vertex.BoneWeights.x;
+            weights[1] = vertex.BoneWeights.y;
+            weights[2] = vertex.BoneWeights.z;
+			weights[3] = 1.0f - weights[0] - weights[1] - weights[2];
+
+			DirectX::XMVECTOR posL = {0.0f, 0.0f, 0.0f};
+			DirectX::XMVECTOR normalL = {0.0f, 0.0f, 0.0f};
+			DirectX::XMVECTOR tangentL = {0.0f, 0.0f, 0.0f};
+			for (int i = 0; i < 4; ++i)
+			{
+				// Assume no nonuniform scaling when transforming normals, so 
+				// that we do not have to use the inverse-transpose.
+				posL += VectorMatrixMultiplyFloat(DirectX::XMFLOAT4(vertex.Pos.x, vertex.Pos.y, vertex.Pos.z, 1.0f), 
+                    boneTrans[vertex.BoneIndices[i]], weights[i]);
+				normalL += VectorMatrixMultiplyFloat(DirectX::XMFLOAT4(vertex.Normal.x, vertex.Normal.y, vertex.Normal.z, 1.0f), 
+                    boneTrans[vertex.BoneIndices[i]], weights[i]);
+				tangentL += VectorMatrixMultiplyFloat(DirectX::XMFLOAT4(vertex.TangentU.x, vertex.TangentU.y, vertex.TangentU.z, 1.0f), 
+                    boneTrans[vertex.BoneIndices[i]], weights[i]);
+			}
+   //         DirectX::XMFLOAT4 tmp;
+   //         XMStoreFloat4(&tmp, posL);
+			//vin.PosL = posL;
+			//vin.NormalL = normalL;
+			//vin.TangentL.xyz = tangentL;
+        }
+
+    }
 }
  
 void SkinnedMeshApp::UpdateMaterialBuffer(const GameTimer& gt)
@@ -1091,6 +1172,8 @@ void SkinnedMeshApp::LoadSkinnedModel()
 	geo->VertexBufferByteSize = vbByteSize;
 	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
 	geo->IndexBufferByteSize = ibByteSize;
+    geo->vertices = vertices;
+    geo->indices = indices;
 
 	for(UINT i = 0; i < (UINT)mSkinnedSubsets.size(); ++i)
 	{
@@ -1443,8 +1526,24 @@ void SkinnedMeshApp::BuildRenderItems()
 	mRitemLayer[(int)RenderLayer::Opaque].push_back(gridRitem.get());
 	mAllRitems.push_back(std::move(gridRitem));
 
+    ////
+    auto mirrorItem = std::make_unique<RenderItem>();
+    mirrorItem ->World = MathHelper::Identity4x4();
+    XMStoreFloat4x4(&mirrorItem->World, XMMatrixTranslation(10, 10, 10));
+	mirrorItem->ObjCBIndex = 4;
+	mirrorItem->Mat = mMaterials["bricks0"].get();
+	mirrorItem->Geo = mGeometries["shapeGeo"].get();
+	mirrorItem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+    mirrorItem->IndexCount = mirrorItem->Geo->DrawArgs["quad"].IndexCount;
+    mirrorItem->StartIndexLocation = mirrorItem->Geo->DrawArgs["quad"].StartIndexLocation;
+    mirrorItem->BaseVertexLocation = mirrorItem->Geo->DrawArgs["quad"].BaseVertexLocation;
+
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(mirrorItem.get());
+	mAllRitems.push_back(std::move(mirrorItem));
+    ////
+
 	XMMATRIX brickTexTransform = XMMatrixScaling(1.5f, 2.0f, 1.0f);
-	UINT objCBIndex = 4;
+	UINT objCBIndex = 5;
 	for(int i = 0; i < 5; ++i)
 	{
 		auto leftCylRitem = std::make_unique<RenderItem>();

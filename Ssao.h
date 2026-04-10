@@ -8,7 +8,7 @@
 #pragma once
 
 #include "Common/d3dUtil.h"
-#include "FrameResource.h"
+#include "Common/FrameResource.h"
  
  
 class Ssao

@@ -9,11 +9,11 @@
 #include "Common/UploadBuffer.h"
 #include "Common/GeometryGenerator.h"
 #include "Common/Camera.h"
-#include "FrameResource.h"
+#include "Common/FrameResource.h"
 #include "ShadowMap.h"
 #include "Ssao.h"
-#include "SkinnedData.h"
-#include "LoadM3d.h"
+#include "Common/SkinnedData.h"
+#include "Common/LoadM3d.h"
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
@@ -32,8 +32,7 @@ public:
     std::vector<DirectX::XMFLOAT4X4>& FinalTransforms()
     {
         return m_finalTransforms;
-
-    }
+   }
 private:
     SkinnedData* SkinnedInfo = nullptr;
     std::vector<DirectX::XMFLOAT4X4> m_finalTransforms;
@@ -54,7 +53,7 @@ public:
         if (TimePos > SkinnedInfo->GetClipEndTime(ClipName))
         {
             TimePos = 0.0f;
-            gameobject->PostEvent("Play_Reflect_Emitter");
+            //gameobject->PostEvent("Play_Reflect_Emitter");
         }
 
         // Compute the final transforms for this time position.
@@ -167,6 +166,7 @@ private:
 
 private:
 
+    bool GPUSkin = true;
     std::vector<std::unique_ptr<FrameResource>> mFrameResources;
     FrameResource* mCurrFrameResource = nullptr;
     int mCurrFrameResourceIndex = 0;
